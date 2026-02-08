@@ -1,0 +1,130 @@
+{
+  "_type": "export",
+  "__export_format": 4,
+  "__export_date": "2026-02-05T14:55:00.000Z",
+  "__export_source": "insomnia.desktop.app:v2023.5.8",
+  "resources": [
+    {
+      "_id": "env_onfly",
+      "_type": "environment",
+      "parentId": null,
+      "name": "OnFly - Local",
+      "data": {
+        "base_url": "http://localhost",
+        "token": ""
+      }
+    },
+    {
+      "_id": "wrk_onfly",
+      "_type": "workspace",
+      "parentId": null,
+      "name": "OnFly Travel Orders",
+      "description": "API de pedidos de viagem corporativa - Laravel + Sanctum"
+    },
+
+    {
+      "_id": "req_login",
+      "_type": "request",
+      "parentId": "wrk_onfly",
+      "name": "Auth - Login",
+      "method": "POST",
+      "url": "{{ base_url }}/api/login",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"email\": \"admin@onfly.local\",\n  \"password\": \"password\"\n}"
+      },
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" },
+        { "name": "Accept", "value": "application/json" }
+      ]
+    },
+
+    {
+      "_id": "req_me",
+      "_type": "request",
+      "parentId": "wrk_onfly",
+      "name": "Auth - Me",
+      "method": "GET",
+      "url": "{{ base_url }}/api/me",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ token }}" },
+        { "name": "Accept", "value": "application/json" }
+      ]
+    },
+
+    {
+      "_id": "req_list",
+      "_type": "request",
+      "parentId": "wrk_onfly",
+      "name": "TravelOrders - List",
+      "method": "GET",
+      "url": "{{ base_url }}/api/travel-orders",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ token }}" },
+        { "name": "Accept", "value": "application/json" }
+      ]
+    },
+
+    {
+      "_id": "req_create",
+      "_type": "request",
+      "parentId": "wrk_onfly",
+      "name": "TravelOrders - Create",
+      "method": "POST",
+      "url": "{{ base_url }}/api/travel-orders",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"requester_name\": \"Lucas\",\n  \"destination\": \"São Paulo\",\n  \"departure_date\": \"2026-03-01\",\n  \"return_date\": \"2026-03-05\"\n}"
+      },
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ token }}" },
+        { "name": "Content-Type", "value": "application/json" },
+        { "name": "Accept", "value": "application/json" }
+      ]
+    },
+
+    {
+      "_id": "req_show",
+      "_type": "request",
+      "parentId": "wrk_onfly",
+      "name": "TravelOrders - Show",
+      "method": "GET",
+      "url": "{{ base_url }}/api/travel-orders/1",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ token }}" },
+        { "name": "Accept", "value": "application/json" }
+      ]
+    },
+
+    {
+      "_id": "req_update_status",
+      "_type": "request",
+      "parentId": "wrk_onfly",
+      "name": "TravelOrders - Update Status (Admin)",
+      "method": "PATCH",
+      "url": "{{ base_url }}/api/travel-orders/1/status",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"status\": \"approved\"\n}"
+      },
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ token }}" },
+        { "name": "Content-Type", "value": "application/json" },
+        { "name": "Accept", "value": "application/json" }
+      ]
+    },
+
+    {
+      "_id": "req_logout",
+      "_type": "request",
+      "parentId": "wrk_onfly",
+      "name": "Auth - Logout",
+      "method": "POST",
+      "url": "{{ base_url }}/api/logout",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ token }}" },
+        { "name": "Accept", "value": "application/json" }
+      ]
+    }
+  ]
+}
