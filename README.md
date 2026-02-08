@@ -32,9 +32,9 @@ O sistema permite:
 
 ## Requisitos
 
-- Docker + Docker Compose (para rodar tudo via Docker)
-- PHP 8.3 (apenas se for rodar o backend fora do Docker)
-- Node.js 20 + npm (apenas se for rodar o frontend fora do Docker)
+- Docker
+- PHP 8.3
+- Node.js 20
 - Git
 
 > O backend roda via **Laravel Sail** (Docker).  
