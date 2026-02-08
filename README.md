@@ -71,6 +71,19 @@ Copie o `.env`:
 cp .env.example .env
 ```
 
+Garanta os diretórios de cache/storage (evita erro "Please provide a valid cache path"):
+
+```bash
+mkdir -p storage/framework/cache/data storage/framework/sessions storage/framework/views bootstrap/cache
+chmod -R 775 storage bootstrap/cache
+```
+
+Configure o `.env` do frontend:
+
+```bash
+cp ../frontend/.env.example ../frontend/.env
+```
+
 Suba os containers:
 
 ```bash
@@ -123,6 +136,13 @@ Copie o arquivo de exemplo:
 cp .env.example .env
 ```
 
+Garanta os diretórios de cache/storage (evita erro "Please provide a valid cache path"):
+
+```bash
+mkdir -p storage/framework/cache/data storage/framework/sessions storage/framework/views bootstrap/cache
+chmod -R 775 storage bootstrap/cache
+```
+
 Gere a `APP_KEY`:
 
 ```bash
@@ -146,8 +166,8 @@ Suba migrations e seed:
 Credenciais padrão do banco (Docker):
 - Host: `mysql`
 - Database: `onfly`
-- User: `sail`
-- Password: `password`
+- User: `onfly`
+- Password: `onfly123`
 
 ---
 
