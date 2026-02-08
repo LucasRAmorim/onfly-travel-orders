@@ -37,40 +37,26 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { Notify } from 'quasar'
-import { api } from 'src/boot/axios'
 import NotificationsMenu from 'src/components/dashboard/NotificationsMenu.vue'
+import { clearSession, getSessionUser } from 'src/services/authService'
+import {
+  fetchNotifications as fetchNotificationsService,
+  markNotificationAsRead as markNotificationAsReadService,
+} from 'src/services/notificationsService'
+import type { NotificationItem } from 'src/types/notifications'
 
 const router = useRouter()
-let currentUser: { name?: string; role?: string } | null = null
-
-try {
-  const rawUser = localStorage.getItem('user')
-  currentUser = rawUser ? JSON.parse(rawUser) : null
-} catch {
-  currentUser = null
-}
+const currentUser = getSessionUser()
 
 const displayName = computed(() => currentUser?.name || 'Usuario')
 const roleLabel = computed(() => (currentUser?.role === 'admin' ? 'Administrador' : 'Colaborador'))
 const isAdmin = computed(() => currentUser?.role === 'admin')
 
-const notifications = ref<Array<{
-  id: string
-  created_at: string | null
-  read_at: string | null
-  data: {
-    travel_order_id: number
-    status: 'requested' | 'approved' | 'canceled'
-    destination: string
-    departure_date: string
-    return_date: string
-  }
-}>>([])
+const notifications = ref<NotificationItem[]>([])
 const unreadCount = ref(0)
 
 async function logout() {
-  localStorage.removeItem('token')
-  localStorage.removeItem('user')
+  clearSession()
   Notify.create({ message: 'Sessao encerrada', type: 'info' })
   await router.push('/login')
 }
@@ -78,7 +64,7 @@ async function logout() {
 async function fetchNotifications(): Promise<void> {
   if (isAdmin.value) return
   try {
-    const { data } = await api.get('/notifications')
+    const data = await fetchNotificationsService()
     notifications.value = data.data || []
     unreadCount.value = data.meta?.unread_count ?? 0
   } catch {
@@ -89,7 +75,7 @@ async function fetchNotifications(): Promise<void> {
 
 async function markNotificationAsRead(id: string): Promise<void> {
   try {
-    await api.patch(`/notifications/${id}/read`)
+    await markNotificationAsReadService(id)
     notifications.value = notifications.value.map((note) =>
       note.id === id ? { ...note, read_at: new Date().toISOString() } : note
     )

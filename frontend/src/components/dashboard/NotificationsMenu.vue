@@ -56,7 +56,7 @@
 <script setup lang="ts">
 import { date } from 'quasar'
 import { useStatusHelpers } from 'src/composables/useStatusHelpers'
-import type { StatusValue } from './types'
+import type { StatusValue } from 'src/types/travel-orders'
 
 defineProps<{
   isAdmin: boolean

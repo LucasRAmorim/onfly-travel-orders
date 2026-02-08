@@ -1,6 +1,6 @@
 import { ref } from 'vue'
-import { api } from 'src/boot/axios'
-import type { Airport, AirportOption } from 'src/components/dashboard/types'
+import { searchAirports } from 'src/services/airportsService'
+import type { Airport, AirportOption } from 'src/types/airports'
 
 type UseAirportSearchOptions = {
   minLength?: number
@@ -47,11 +47,10 @@ export function useAirportSearch(options: UseAirportSearchOptions = {}) {
     const requestId = ++searchToken
     loading.value = true
 
-    api
-      .get('/airports', { params: { q: term, limit } })
-      .then(({ data }) => {
+    searchAirports(term, limit)
+      .then((airports: Airport[]) => {
         if (requestId !== searchToken) return
-        const options = (data.data as Airport[]).map(mapAirportOption)
+        const options = airports.map(mapAirportOption)
         update(() => {
           airportOptions.value = options
         })

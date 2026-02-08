@@ -28,7 +28,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useStatusHelpers } from 'src/composables/useStatusHelpers'
-import type { TravelOrder } from './types'
+import type { TravelOrder } from 'src/types/travel-orders'
 
 const props = defineProps<{
   modelValue: boolean
