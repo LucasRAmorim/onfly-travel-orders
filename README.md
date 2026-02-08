@@ -47,6 +47,7 @@ O sistema permite:
 Backend:
 - `.env` a partir de `.env.example`
 - Ajuste `APP_URL` se necessário
+- `CORS_ALLOWED_ORIGINS` para liberar o frontend (ex.: `http://localhost:9000`)
 
 Frontend:
 - `.env` a partir de `.env.example`
@@ -88,6 +89,7 @@ Acesso:
 - API (Laravel): `http://localhost`
 - Frontend (Quasar): `http://localhost:9000`
 - phpMyAdmin: `http://localhost:8081`
+- Swagger (Docs): `http://localhost/api/documentation`
 
 > O container do frontend executa `npm install` na primeira subida.
 
@@ -139,6 +141,7 @@ Suba migrations e seed:
 - API (Laravel): `http://localhost`
 - Frontend (Quasar, via Docker): `http://localhost:9000`
 - phpMyAdmin: `http://localhost:8081`
+- Swagger (Docs): `http://localhost/api/documentation`
 
 Credenciais padrão do banco (Docker):
 - Host: `mysql`
@@ -341,7 +344,7 @@ O projeto **não expõe** `3306` no host para evitar conflito.
 O MySQL é acessível internamente pelos containers (`DB_HOST=mysql`).
 
 ### CORS
-Caso o navegador bloqueie chamadas, valide o `config/cors.php` no backend permitindo `http://localhost:9000`.
+Caso o navegador bloqueie chamadas, ajuste `CORS_ALLOWED_ORIGINS` no `.env` ou edite `config/cors.php`.
 
 ### Recriar containers do backend
 ```bash

@@ -10,6 +10,15 @@
     <div class="row items-center q-gutter-sm">
       <q-btn color="primary" icon="add" label="Novo pedido" @click="$emit('create')" />
       <q-btn flat icon="refresh" label="Atualizar" @click="$emit('refresh')" :loading="loading" />
+      <q-btn
+        v-if="isAdmin"
+        flat
+        icon="menu_book"
+        label="Documentacao"
+        :href="docsUrl"
+        target="_blank"
+        rel="noopener"
+      />
     </div>
   </div>
 </template>
@@ -19,6 +28,8 @@ defineProps<{
   isAdmin: boolean
   loading: boolean
 }>()
+
+const docsUrl = `${(import.meta.env.VITE_API_URL || '').replace(/\/$/, '')}/api/documentation`
 
 defineEmits<{
   (e: 'create'): void

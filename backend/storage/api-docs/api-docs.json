@@ -1,0 +1,897 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "OnFly API",
+        "description": "API para gestao de pedidos de viagem corporativa.",
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "http://localhost/api",
+            "description": "Servidor local"
+        }
+    ],
+    "paths": {
+        "/airports": {
+            "get": {
+                "tags": [
+                    "Aeroportos"
+                ],
+                "summary": "Buscar aeroportos",
+                "description": "Retorna aeroportos com base em termo de busca.",
+                "operationId": "53b9812003dc81228dc338090e112630",
+                "parameters": [
+                    {
+                        "name": "q",
+                        "in": "query",
+                        "description": "Termo de busca (min 2 caracteres)",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "gru"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "Limite de resultados",
+                        "schema": {
+                            "type": "integer",
+                            "default": 10
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de aeroportos",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AirportsResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Parametros invalidos",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/login": {
+            "post": {
+                "tags": [
+                    "Autenticacao"
+                ],
+                "summary": "Login",
+                "description": "Autentica usuario e retorna token de acesso.",
+                "operationId": "67d6d0fdd54fba132e1b6f55ca254183",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "email",
+                                    "password"
+                                ],
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "example": "admin@onfly.local"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "example": "password"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Login realizado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AuthResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Credenciais invalidas",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/notifications": {
+            "get": {
+                "tags": [
+                    "Notificacoes"
+                ],
+                "summary": "Listar notificacoes",
+                "description": "Retorna as ultimas notificacoes do usuario.",
+                "operationId": "b1274a2aaae8a4295a7e1925e8d8090f",
+                "responses": {
+                    "200": {
+                        "description": "Lista de notificacoes",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/NotificationsResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Nao autorizado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/notifications/{notificationId}/read": {
+            "patch": {
+                "tags": [
+                    "Notificacoes"
+                ],
+                "summary": "Marcar notificacao como lida",
+                "operationId": "8720bdcf144f2f9dca10fdcc794f3c63",
+                "parameters": [
+                    {
+                        "name": "notificationId",
+                        "in": "path",
+                        "description": "ID da notificacao",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Notificacao marcada como lida",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/NotificationReadResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Nao autorizado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Admin nao possui notificacoes",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Nao encontrado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/travel-orders": {
+            "get": {
+                "tags": [
+                    "Pedidos"
+                ],
+                "summary": "Listar pedidos",
+                "description": "Lista pedidos do usuario (ou todos para admin) com filtros opcionais.",
+                "operationId": "92facc057d1621a5ce27d18a182f81df",
+                "parameters": [
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "description": "Status do pedido",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "requested",
+                                "approved",
+                                "canceled"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "destination",
+                        "in": "query",
+                        "description": "Destino (contém)",
+                        "schema": {
+                            "type": "string",
+                            "example": "Sao"
+                        }
+                    },
+                    {
+                        "name": "travel_from",
+                        "in": "query",
+                        "description": "Data inicial da viagem (YYYY-MM-DD)",
+                        "schema": {
+                            "type": "string",
+                            "example": "2026-03-01"
+                        }
+                    },
+                    {
+                        "name": "travel_to",
+                        "in": "query",
+                        "description": "Data final da viagem (YYYY-MM-DD)",
+                        "schema": {
+                            "type": "string",
+                            "example": "2026-03-31"
+                        }
+                    },
+                    {
+                        "name": "created_from",
+                        "in": "query",
+                        "description": "Data inicial de criacao (YYYY-MM-DD)",
+                        "schema": {
+                            "type": "string",
+                            "example": "2026-02-01"
+                        }
+                    },
+                    {
+                        "name": "created_to",
+                        "in": "query",
+                        "description": "Data final de criacao (YYYY-MM-DD)",
+                        "schema": {
+                            "type": "string",
+                            "example": "2026-02-28"
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Pagina",
+                        "schema": {
+                            "type": "integer",
+                            "default": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de pedidos",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/TravelOrdersListResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Nao autorizado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Parametros invalidos",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Pedidos"
+                ],
+                "summary": "Criar pedido",
+                "description": "Cria um novo pedido de viagem.",
+                "operationId": "8917a1446e104c64ad4cfd0982b61e79",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/TravelOrderForm"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Pedido criado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/TravelOrderResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Nao autorizado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Dados invalidos",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/travel-orders/{id}": {
+            "get": {
+                "tags": [
+                    "Pedidos"
+                ],
+                "summary": "Detalhar pedido",
+                "description": "Recupera um pedido por id (apenas se autorizado).",
+                "operationId": "76a1bba9a812c6c4a6f939d5ba05709e",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID do pedido",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Pedido encontrado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/TravelOrderResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Nao autorizado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Acesso negado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Nao encontrado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/travel-orders/{id}/status": {
+            "patch": {
+                "tags": [
+                    "Pedidos"
+                ],
+                "summary": "Atualizar status do pedido",
+                "description": "Aprova ou cancela um pedido (apenas admin).",
+                "operationId": "da6caf6f0cd431713302cd77a0ee98cd",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID do pedido",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "status"
+                                ],
+                                "properties": {
+                                    "status": {
+                                        "type": "string",
+                                        "enum": [
+                                            "approved",
+                                            "canceled"
+                                        ]
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Status atualizado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/TravelOrderResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Nao autorizado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Acesso negado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Nao encontrado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Dados invalidos",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "User": {
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "Lucas"
+                    },
+                    "email": {
+                        "type": "string",
+                        "example": "admin@onfly.local"
+                    },
+                    "role": {
+                        "type": "string",
+                        "example": "admin"
+                    }
+                },
+                "type": "object"
+            },
+            "AuthResponse": {
+                "properties": {
+                    "token": {
+                        "type": "string",
+                        "example": "token..."
+                    },
+                    "user": {
+                        "$ref": "#/components/schemas/User"
+                    }
+                },
+                "type": "object"
+            },
+            "TravelOrder": {
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "requester_name": {
+                        "type": "string",
+                        "example": "Lucas"
+                    },
+                    "destination": {
+                        "type": "string",
+                        "example": "Sao Paulo"
+                    },
+                    "departure_date": {
+                        "type": "string",
+                        "example": "2026-03-01"
+                    },
+                    "return_date": {
+                        "type": "string",
+                        "example": "2026-03-05"
+                    },
+                    "status": {
+                        "type": "string",
+                        "example": "requested"
+                    },
+                    "user_id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "example": "2026-02-08T10:00:00Z"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "example": "2026-02-08T10:00:00Z"
+                    }
+                },
+                "type": "object"
+            },
+            "TravelOrderForm": {
+                "required": [
+                    "requester_name",
+                    "destination",
+                    "departure_date",
+                    "return_date"
+                ],
+                "properties": {
+                    "requester_name": {
+                        "type": "string",
+                        "example": "Lucas"
+                    },
+                    "destination": {
+                        "type": "string",
+                        "example": "Sao Paulo"
+                    },
+                    "departure_date": {
+                        "type": "string",
+                        "example": "2026-03-01"
+                    },
+                    "return_date": {
+                        "type": "string",
+                        "example": "2026-03-05"
+                    }
+                },
+                "type": "object"
+            },
+            "PaginatedTravelOrders": {
+                "properties": {
+                    "data": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/TravelOrder"
+                        }
+                    },
+                    "total": {
+                        "type": "integer",
+                        "example": 15
+                    },
+                    "current_page": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "per_page": {
+                        "type": "integer",
+                        "example": 10
+                    }
+                },
+                "type": "object"
+            },
+            "TravelOrderStatusCounts": {
+                "properties": {
+                    "requested": {
+                        "type": "integer",
+                        "example": 10
+                    },
+                    "approved": {
+                        "type": "integer",
+                        "example": 3
+                    },
+                    "canceled": {
+                        "type": "integer",
+                        "example": 2
+                    }
+                },
+                "type": "object"
+            },
+            "TravelOrdersListResponse": {
+                "properties": {
+                    "data": {
+                        "$ref": "#/components/schemas/PaginatedTravelOrders"
+                    },
+                    "meta": {
+                        "properties": {
+                            "status_counts": {
+                                "$ref": "#/components/schemas/TravelOrderStatusCounts"
+                            }
+                        },
+                        "type": "object"
+                    }
+                },
+                "type": "object"
+            },
+            "TravelOrderResponse": {
+                "properties": {
+                    "data": {
+                        "$ref": "#/components/schemas/TravelOrder"
+                    }
+                },
+                "type": "object"
+            },
+            "Airport": {
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "example": "1"
+                    },
+                    "iata_code": {
+                        "type": "string",
+                        "example": "GRU"
+                    },
+                    "icao_code": {
+                        "type": "string",
+                        "example": "SBGR"
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "Guarulhos"
+                    },
+                    "city": {
+                        "type": "string",
+                        "example": "Sao Paulo"
+                    },
+                    "country": {
+                        "type": "string",
+                        "example": "Brasil"
+                    }
+                },
+                "type": "object"
+            },
+            "AirportsResponse": {
+                "properties": {
+                    "data": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Airport"
+                        }
+                    }
+                },
+                "type": "object"
+            },
+            "NotificationData": {
+                "properties": {
+                    "travel_order_id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "status": {
+                        "type": "string",
+                        "example": "approved"
+                    },
+                    "destination": {
+                        "type": "string",
+                        "example": "Sao Paulo"
+                    },
+                    "departure_date": {
+                        "type": "string",
+                        "example": "2026-03-01"
+                    },
+                    "return_date": {
+                        "type": "string",
+                        "example": "2026-03-05"
+                    }
+                },
+                "type": "object"
+            },
+            "NotificationItem": {
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "example": "uuid"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "example": "2026-02-08T10:00:00Z"
+                    },
+                    "read_at": {
+                        "type": "string",
+                        "example": "2026-02-08T10:05:00Z"
+                    },
+                    "data": {
+                        "$ref": "#/components/schemas/NotificationData"
+                    }
+                },
+                "type": "object"
+            },
+            "NotificationsResponse": {
+                "properties": {
+                    "data": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/NotificationItem"
+                        }
+                    },
+                    "meta": {
+                        "properties": {
+                            "unread_count": {
+                                "type": "integer",
+                                "example": 2
+                            }
+                        },
+                        "type": "object"
+                    }
+                },
+                "type": "object"
+            },
+            "NotificationReadResponse": {
+                "properties": {
+                    "data": {
+                        "properties": {
+                            "id": {
+                                "type": "string",
+                                "example": "uuid"
+                            },
+                            "read_at": {
+                                "type": "string",
+                                "example": "2026-02-08T10:05:00Z"
+                            }
+                        },
+                        "type": "object"
+                    }
+                },
+                "type": "object"
+            },
+            "ErrorResponse": {
+                "properties": {
+                    "message": {
+                        "type": "string",
+                        "example": "Nao autorizado"
+                    }
+                },
+                "type": "object"
+            }
+        },
+        "securitySchemes": {
+            "bearerAuth": {
+                "type": "http",
+                "bearerFormat": "Token",
+                "scheme": "bearer"
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Autenticacao",
+            "description": "Login e sessao"
+        },
+        {
+            "name": "Pedidos",
+            "description": "Pedidos de viagem"
+        },
+        {
+            "name": "Aeroportos",
+            "description": "Busca de aeroportos"
+        },
+        {
+            "name": "Notificacoes",
+            "description": "Notificacoes do usuario"
+        }
+    ]
+}

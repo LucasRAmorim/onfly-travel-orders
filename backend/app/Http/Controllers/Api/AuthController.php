@@ -7,9 +7,36 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
+use OpenApi\Annotations as OA;
 
 class AuthController extends Controller
 {
+    /**
+     * @OA\Post(
+     *     path="/login",
+     *     summary="Login",
+     *     description="Autentica usuario e retorna token de acesso.",
+     *     tags={"Autenticacao"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"email","password"},
+     *             @OA\Property(property="email", type="string", example="admin@onfly.local"),
+     *             @OA\Property(property="password", type="string", example="password")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Login realizado",
+     *         @OA\JsonContent(ref="#/components/schemas/AuthResponse")
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Credenciais invalidas",
+     *         @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
+     *     )
+     * )
+     */
     public function login(Request $request)
     {
         $credentials = $request->validate([
