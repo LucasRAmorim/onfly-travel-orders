@@ -12,8 +12,8 @@
         <div class="q-mb-sm"><strong>ID:</strong> {{ order.id }}</div>
         <div class="q-mb-sm"><strong>Solicitante:</strong> {{ order.requester_name }}</div>
         <div class="q-mb-sm"><strong>Destino:</strong> {{ order.destination }}</div>
-        <div class="q-mb-sm"><strong>Ida:</strong> {{ order.departure_date?.slice(0, 10) }}</div>
-        <div class="q-mb-sm"><strong>Volta:</strong> {{ order.return_date?.slice(0, 10) }}</div>
+        <div class="q-mb-sm"><strong>Ida:</strong> {{ formatDate(order.departure_date) }}</div>
+        <div class="q-mb-sm"><strong>Volta:</strong> {{ formatDate(order.return_date) }}</div>
         <div class="q-mb-sm">
           <strong>Status:</strong>
           <q-badge :class="['status-badge', statusClass(order.status)]">
@@ -29,6 +29,7 @@
 import { computed } from 'vue'
 import { useStatusHelpers } from 'src/composables/useStatusHelpers'
 import type { TravelOrder } from 'src/types/travel-orders'
+import { toBrDate } from 'src/utils/date'
 
 const props = defineProps<{
   modelValue: boolean
@@ -45,4 +46,5 @@ const open = computed({
 })
 
 const { statusLabel, statusClass } = useStatusHelpers()
+const formatDate = (value: string | null | undefined) => (value ? toBrDate(value) : '')
 </script>

@@ -2,10 +2,11 @@
   <q-layout view="hHh lpR fFf">
     <q-header elevated class="glass-card" height-hint="64">
       <q-toolbar class="q-px-md app-toolbar">
-        <div class="app-toolbar-left"></div>
+        <div class="app-toolbar-left">
+          <img src="/icons/plane.png" alt="OnFly" class="brand-logo brand-logo--header-left" />
+        </div>
 
         <div class="app-title row items-center q-gutter-sm">
-          <q-icon name="flight" />
           <span class="text-weight-bold">OnFly</span>
           <span class="app-subtitle text-grey-7">Central de Viagens</span>
         </div>

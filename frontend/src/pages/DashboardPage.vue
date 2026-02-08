@@ -51,6 +51,7 @@ import TravelOrderDetailsDialog from 'src/components/dashboard/TravelOrderDetail
 import { listTravelOrders, updateTravelOrderStatus } from 'src/services/travelOrdersService'
 import type { ApiError } from 'src/types/api'
 import type { Filters, PaginationState, StatusValue, TravelOrder } from 'src/types/travel-orders'
+import { toApiDate } from 'src/utils/date'
 
 const rawUser = localStorage.getItem('user')
 const currentUser = rawUser ? JSON.parse(rawUser) : null
@@ -120,8 +121,8 @@ function buildParams(): Record<string, string | number> {
 
   if (filters.value.status) p.status = filters.value.status
   if (filters.value.destination) p.destination = filters.value.destination
-  if (filters.value.travel_from) p.travel_from = filters.value.travel_from
-  if (filters.value.travel_to) p.travel_to = filters.value.travel_to
+  if (filters.value.travel_from) p.travel_from = toApiDate(filters.value.travel_from)
+  if (filters.value.travel_to) p.travel_to = toApiDate(filters.value.travel_to)
 
   p.page = pagination.value.page
 
@@ -183,6 +184,20 @@ function viewOrder(row: TravelOrder) {
 }
 
 function updateStatus(payload: { id: number; status: StatusValue }) {
+  async function applyStatusUpdate() {
+    try {
+      await updateTravelOrderStatus(payload.id, payload.status)
+      Notify.create({ type: 'positive', message: 'Status atualizado com sucesso.' })
+      await fetchOrders()
+    } catch (e) {
+      const err = e as { response?: { data?: { message?: string; errors?: Record<string, string[]> } } }
+      const msg =
+        err?.response?.data?.message ||
+        (err?.response?.data?.errors ? Object.values(err.response.data.errors).flat().join(' ') : 'Erro ao atualizar status.')
+      Notify.create({ type: 'negative', message: msg })
+    }
+  }
+
   $q.dialog({
     title: 'Confirmar',
     message: `Deseja ${payload.status === 'approved' ? 'aprovar' : 'cancelar'} este pedido?`,
@@ -197,18 +212,8 @@ function updateStatus(payload: { id: number; status: StatusValue }) {
       flat: true,
     },
     persistent: true,
-  }).onOk(async () => {
-    try {
-      await updateTravelOrderStatus(payload.id, payload.status)
-      Notify.create({ type: 'positive', message: 'Status atualizado com sucesso.' })
-      await fetchOrders()
-    } catch (e) {
-      const err = e as { response?: { data?: { message?: string; errors?: Record<string, string[]> } } }
-      const msg =
-        err?.response?.data?.message ||
-        (err?.response?.data?.errors ? Object.values(err.response.data.errors).flat().join(' ') : 'Erro ao atualizar status.')
-      Notify.create({ type: 'negative', message: msg })
-    }
+  }).onOk(() => {
+    void applyStatusUpdate()
   })
 }
 

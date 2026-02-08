@@ -12,6 +12,10 @@ const routes: RouteRecordRaw[] = [
     meta: { requiresAuth: true },
     children: [{ path: '', component: () => import('pages/DashboardPage.vue') }],
   },
+  {
+    path: '/:catchAll(.*)*',
+    component: () => import('pages/ErrorNotFound.vue'),
+  },
 ]
 
 export default routes

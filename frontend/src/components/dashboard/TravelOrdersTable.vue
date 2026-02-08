@@ -58,6 +58,7 @@ import { computed } from 'vue'
 import type { QTableColumn } from 'quasar'
 import type { PaginationState, StatusValue, TravelOrder } from 'src/types/travel-orders'
 import { useStatusHelpers } from 'src/composables/useStatusHelpers'
+import { toBrDate } from 'src/utils/date'
 
 const props = defineProps<{
   rows: TravelOrder[]
@@ -74,6 +75,7 @@ const emit = defineEmits<{
 }>()
 
 const { statusLabel, statusClass } = useStatusHelpers()
+const formatDate = (value: string | null | undefined) => (value ? toBrDate(value) : '')
 
 const paginationModel = computed({
   get: () => props.pagination,
@@ -88,6 +90,7 @@ const columns: QTableColumn<TravelOrder>[] = [
     name: 'departure_date',
     label: 'Ida',
     field: (r) => r.departure_date?.slice(0, 10),
+    format: (val) => formatDate(val as string | null | undefined),
     sortable: true,
     align: 'left',
   },
@@ -95,6 +98,7 @@ const columns: QTableColumn<TravelOrder>[] = [
     name: 'return_date',
     label: 'Volta',
     field: (r) => r.return_date?.slice(0, 10),
+    format: (val) => formatDate(val as string | null | undefined),
     sortable: true,
     align: 'left',
   },

@@ -56,7 +56,7 @@
             <template #append>
               <q-icon name="event" class="cursor-pointer">
                 <q-popup-proxy cover transition-show="scale" transition-hide="scale">
-                  <q-date v-model="travelFrom" mask="YYYY-MM-DD" :min="today" :options="filterDateOptions">
+                  <q-date v-model="travelFrom" mask="DD/MM/YYYY" :min="today" :options="filterDateOptions">
                     <div class="row items-center justify-end q-gutter-sm">
                       <q-btn v-close-popup label="OK" color="primary" flat />
                     </div>
@@ -72,7 +72,7 @@
             <template #append>
               <q-icon name="event" class="cursor-pointer">
                 <q-popup-proxy cover transition-show="scale" transition-hide="scale">
-                  <q-date v-model="travelTo" mask="YYYY-MM-DD" :min="today" :options="filterDateOptions">
+                  <q-date v-model="travelTo" mask="DD/MM/YYYY" :min="today" :options="filterDateOptions">
                     <div class="row items-center justify-end q-gutter-sm">
                       <q-btn v-close-popup label="OK" color="primary" flat />
                     </div>
@@ -136,7 +136,7 @@ const travelTo = computed({
 
 const { airportOptions, loading: airportLoading, filterAirports, addCustomDestination } = useAirportSearch()
 
-const today = date.formatDate(Date.now(), 'YYYY-MM-DD')
+const today = date.formatDate(Date.now(), 'DD/MM/YYYY')
 const todayOption = date.formatDate(Date.now(), 'YYYY/MM/DD')
 
 function filterDateOptions(dateStr: string) {

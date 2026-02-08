@@ -66,7 +66,7 @@
                 <template #append>
                   <q-icon name="event" class="cursor-pointer">
                     <q-popup-proxy cover transition-show="scale" transition-hide="scale">
-                      <q-date v-model="form.departure_date" mask="YYYY-MM-DD" :min="today" :options="departureDateOptions">
+                      <q-date v-model="form.departure_date" mask="DD/MM/YYYY" :min="today" :options="departureDateOptions">
                         <div class="row items-center justify-end q-gutter-sm">
                           <q-btn v-close-popup label="OK" color="primary" flat />
                         </div>
@@ -92,7 +92,7 @@
                 <template #append>
                   <q-icon name="event" class="cursor-pointer">
                     <q-popup-proxy cover transition-show="scale" transition-hide="scale">
-                      <q-date v-model="form.return_date" mask="YYYY-MM-DD" :min="returnMinDate" :options="returnDateOptions">
+                      <q-date v-model="form.return_date" mask="DD/MM/YYYY" :min="returnMinDate" :options="returnDateOptions">
                         <div class="row items-center justify-end q-gutter-sm">
                           <q-btn v-close-popup label="OK" color="primary" flat />
                         </div>
@@ -121,6 +121,7 @@ import { useAirportSearch } from 'src/composables/useAirportSearch'
 import { createTravelOrder } from 'src/services/travelOrdersService'
 import type { ApiError } from 'src/types/api'
 import type { TravelOrderForm } from 'src/types/travel-orders'
+import { toApiDate } from 'src/utils/date'
 
 const props = defineProps<{
   modelValue: boolean
@@ -148,7 +149,7 @@ const saving = ref(false)
 
 const { airportOptions, loading: airportLoading, filterAirports, addCustomDestination } = useAirportSearch()
 
-const today = date.formatDate(Date.now(), 'YYYY-MM-DD')
+const today = date.formatDate(Date.now(), 'DD/MM/YYYY')
 const todayOption = date.formatDate(Date.now(), 'YYYY/MM/DD')
 const returnMinDate = computed(() => form.value.departure_date || today)
 
@@ -162,7 +163,7 @@ function departureDateOptions(dateStr: string) {
 
 function toOptionDate(value: string) {
   if (!value) return todayOption
-  const parsed = date.extractDate(value, 'YYYY-MM-DD')
+  const parsed = date.extractDate(value, 'DD/MM/YYYY')
   if (Number.isNaN(parsed.getTime())) return todayOption
   return date.formatDate(parsed, 'YYYY/MM/DD')
 }
@@ -202,7 +203,12 @@ watch(
 async function createOrder() {
   saving.value = true
   try {
-    await createTravelOrder(form.value)
+    const payload: TravelOrderForm = {
+      ...form.value,
+      departure_date: toApiDate(form.value.departure_date),
+      return_date: toApiDate(form.value.return_date),
+    }
+    await createTravelOrder(payload)
     Notify.create({ type: 'positive', message: 'Pedido criado com sucesso.' })
     emit('created')
     open.value = false

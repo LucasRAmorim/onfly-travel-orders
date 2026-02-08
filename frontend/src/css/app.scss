@@ -136,6 +136,12 @@ body {
   align-items: center;
 }
 
+.app-toolbar-left {
+  display: flex;
+  align-items: center;
+  justify-self: start;
+}
+
 .app-title {
   justify-self: center;
   font-size: 1.25rem;
@@ -213,6 +219,23 @@ body {
   border-radius: 999px;
   font-weight: 600;
   color: #0b3c5d;
+}
+
+.brand-logo {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+  display: inline-block;
+}
+
+.brand-logo--pill {
+  width: 18px;
+  height: 18px;
+}
+
+.brand-logo--header-left {
+  width: 32px;
+  height: 32px;
 }
 
 .auth-card {
