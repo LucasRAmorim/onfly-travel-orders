@@ -11,6 +11,18 @@ class TravelOrderAccessTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_guest_cannot_list_orders(): void
+    {
+        $this->getJson('/api/travel-orders')
+            ->assertUnauthorized();
+    }
+
+    public function test_guest_cannot_create_order(): void
+    {
+        $this->postJson('/api/travel-orders', [])
+            ->assertUnauthorized();
+    }
+
     public function test_user_cannot_view_other_users_order(): void
     {
         $userA = User::factory()->create(['role' => 'user']);

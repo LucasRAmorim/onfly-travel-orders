@@ -29,6 +29,35 @@ class TravelOrderFilterTest extends TestCase
             ->assertJsonPath('data.destination', 'Sao Paulo');
     }
 
+    public function test_cannot_create_order_with_missing_fields(): void
+    {
+        $user = User::factory()->create(['role' => 'user']);
+        $token = $user->createToken('api')->plainTextToken;
+
+        $this->withHeader('Authorization', "Bearer {$token}")
+            ->postJson('/api/travel-orders', [])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['requester_name', 'destination', 'departure_date', 'return_date']);
+    }
+
+    public function test_cannot_create_order_with_invalid_dates(): void
+    {
+        $user = User::factory()->create(['role' => 'user']);
+        $token = $user->createToken('api')->plainTextToken;
+
+        $payload = [
+            'requester_name' => $user->name,
+            'destination' => 'Sao Paulo',
+            'departure_date' => now()->subDay()->toDateString(),
+            'return_date' => now()->subDays(2)->toDateString(),
+        ];
+
+        $this->withHeader('Authorization', "Bearer {$token}")
+            ->postJson('/api/travel-orders', $payload)
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['departure_date', 'return_date']);
+    }
+
     public function test_admin_can_list_all_orders(): void
     {
         $admin = User::factory()->create(['role' => 'admin']);
@@ -72,6 +101,17 @@ class TravelOrderFilterTest extends TestCase
 
         $this->assertCount(1, $res);
         $this->assertSame('approved', $res[0]['status']);
+    }
+
+    public function test_invalid_filters_return_validation_error(): void
+    {
+        $user = User::factory()->create(['role' => 'user']);
+        $token = $user->createToken('api')->plainTextToken;
+
+        $this->withHeader('Authorization', "Bearer {$token}")
+            ->getJson('/api/travel-orders?status=invalid&travel_from=not-a-date')
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['status', 'travel_from']);
     }
 
     public function test_can_filter_by_travel_date_range(): void

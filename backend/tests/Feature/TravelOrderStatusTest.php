@@ -13,6 +13,15 @@ class TravelOrderStatusTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_guest_cannot_update_status(): void
+    {
+        $user = User::factory()->create(['role' => 'user']);
+        $order = TravelOrder::factory()->create(['user_id' => $user->id]);
+
+        $this->patchJson("/api/travel-orders/{$order->id}/status", ['status' => 'approved'])
+            ->assertUnauthorized();
+    }
+
     public function test_admin_can_approve_and_notifies_user(): void
     {
         Notification::fake();
@@ -37,6 +46,21 @@ class TravelOrderStatusTest extends TestCase
             ->assertJsonPath('data.status', 'approved');
 
         Notification::assertSentTo($user, TravelOrderStatusChanged::class);
+    }
+
+    public function test_admin_cannot_update_status_with_invalid_value(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $user = User::factory()->create(['role' => 'user']);
+
+        $order = TravelOrder::factory()->create(['user_id' => $user->id]);
+
+        $token = $admin->createToken('api')->plainTextToken;
+
+        $this->withHeader('Authorization', "Bearer {$token}")
+            ->patchJson("/api/travel-orders/{$order->id}/status", ['status' => 'requested'])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('status');
     }
 
     public function test_non_admin_cannot_update_status(): void
