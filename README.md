@@ -148,7 +148,7 @@ Credenciais padrão do banco (Docker):
 
 ---
 
-### 2) Frontend (Quasar, local)
+### 2) Frontend (Quasar, local - opcional)
 
 Em outro terminal, entre na pasta:
 
@@ -176,6 +176,9 @@ npm run dev
 
 Acesse:
 - Frontend (Quasar): `http://localhost:9000`
+
+> Observação: se você subiu o backend via `sail up -d`, o **frontend já sobe no Docker**.  
+> Use o modo local apenas se quiser rodar o front fora do container.
 
 ---
 
