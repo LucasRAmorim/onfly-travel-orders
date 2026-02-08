@@ -48,7 +48,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { Notify, useMeta } from 'quasar'
-import { api } from 'src/boot/axios'
+import { login, saveSession } from 'src/services/authService'
 
 const router = useRouter()
 const email = ref('admin@onfly.local')
@@ -74,13 +74,8 @@ useMeta({
 async function onSubmit() {
   loading.value = true
   try {
-    const { data } = await api.post('/login', {
-      email: email.value,
-      password: password.value,
-    })
-
-    localStorage.setItem('token', data.token)
-    localStorage.setItem('user', JSON.stringify(data.user))
+    const { token, user } = await login(email.value, password.value)
+    saveSession(token, user)
 
     Notify.create({ type: 'positive', message: 'Acesso realizado com sucesso.' })
     await router.push('/')

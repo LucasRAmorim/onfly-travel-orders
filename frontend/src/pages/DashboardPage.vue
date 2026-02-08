@@ -42,23 +42,15 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { Notify, useMeta, useQuasar } from 'quasar'
-import { api } from 'src/boot/axios'
 import DashboardHeader from 'src/components/dashboard/DashboardHeader.vue'
 import DashboardStats from 'src/components/dashboard/DashboardStats.vue'
 import DashboardFilters from 'src/components/dashboard/DashboardFilters.vue'
 import TravelOrdersTable from 'src/components/dashboard/TravelOrdersTable.vue'
 import TravelOrderCreateDialog from 'src/components/dashboard/TravelOrderCreateDialog.vue'
 import TravelOrderDetailsDialog from 'src/components/dashboard/TravelOrderDetailsDialog.vue'
-import type { Filters, PaginationState, StatusValue, TravelOrder } from 'src/components/dashboard/types'
-
-type ApiError = {
-  response?: {
-    data?: {
-      message?: string
-      errors?: Record<string, string[]>
-    }
-  }
-}
+import { listTravelOrders, updateTravelOrderStatus } from 'src/services/travelOrdersService'
+import type { ApiError } from 'src/types/api'
+import type { Filters, PaginationState, StatusValue, TravelOrder } from 'src/types/travel-orders'
 
 const rawUser = localStorage.getItem('user')
 const currentUser = rawUser ? JSON.parse(rawUser) : null
@@ -139,8 +131,7 @@ function buildParams(): Record<string, string | number> {
 async function fetchOrders(): Promise<void> {
   loading.value = true
   try {
-    const { data } = await api.get('/travel-orders', { params: buildParams() })
-
+    const data = await listTravelOrders(buildParams())
     const paginator = data.data
     rows.value = paginator.data
     pagination.value.rowsNumber = paginator.total
@@ -208,7 +199,7 @@ function updateStatus(payload: { id: number; status: StatusValue }) {
     persistent: true,
   }).onOk(async () => {
     try {
-      await api.patch(`/travel-orders/${payload.id}/status`, { status: payload.status })
+      await updateTravelOrderStatus(payload.id, payload.status)
       Notify.create({ type: 'positive', message: 'Status atualizado com sucesso.' })
       await fetchOrders()
     } catch (e) {

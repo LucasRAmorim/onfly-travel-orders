@@ -1,4 +1,4 @@
-import type { StatusValue } from 'src/components/dashboard/types'
+import type { StatusValue } from 'src/types/travel-orders'
 
 export function useStatusHelpers() {
   function statusLabel(status: StatusValue) {

@@ -117,18 +117,10 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { Notify, date } from 'quasar'
-import { api } from 'src/boot/axios'
 import { useAirportSearch } from 'src/composables/useAirportSearch'
-import type { TravelOrderForm } from './types'
-
-type ApiError = {
-  response?: {
-    data?: {
-      message?: string
-      errors?: Record<string, string[]>
-    }
-  }
-}
+import { createTravelOrder } from 'src/services/travelOrdersService'
+import type { ApiError } from 'src/types/api'
+import type { TravelOrderForm } from 'src/types/travel-orders'
 
 const props = defineProps<{
   modelValue: boolean
@@ -210,7 +202,7 @@ watch(
 async function createOrder() {
   saving.value = true
   try {
-    await api.post('/travel-orders', form.value)
+    await createTravelOrder(form.value)
     Notify.create({ type: 'positive', message: 'Pedido criado com sucesso.' })
     emit('created')
     open.value = false

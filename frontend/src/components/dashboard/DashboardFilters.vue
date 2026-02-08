@@ -98,7 +98,7 @@
 import { computed } from 'vue'
 import { date } from 'quasar'
 import { useAirportSearch } from 'src/composables/useAirportSearch'
-import type { Filters, StatusValue } from './types'
+import type { Filters, StatusValue } from 'src/types/travel-orders'
 
 type StatusOption = { label: string; value: StatusValue }
 

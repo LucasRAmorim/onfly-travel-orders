@@ -34,19 +34,24 @@ export type TravelOrderForm = {
   return_date: string
 }
 
-export type Airport = {
-  id: string
-  iata_code: string | null
-  icao_code: string | null
-  name: string
-  city: string
-  country: string
+export type StatusCounts = {
+  requested?: number
+  approved?: number
+  canceled?: number
 }
 
-export type AirportOption = {
-  value: string
-  label: string
-  city: string
-  country: string
-  code?: string
+export type TravelOrdersListResponse = {
+  data: {
+    data: TravelOrder[]
+    total: number
+    current_page: number
+    per_page: number
+  }
+  meta?: {
+    status_counts?: StatusCounts
+  }
+}
+
+export type TravelOrderResponse = {
+  data: TravelOrder
 }

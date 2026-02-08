@@ -56,7 +56,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { QTableColumn } from 'quasar'
-import type { PaginationState, StatusValue, TravelOrder } from './types'
+import type { PaginationState, StatusValue, TravelOrder } from 'src/types/travel-orders'
 import { useStatusHelpers } from 'src/composables/useStatusHelpers'
 
 const props = defineProps<{
