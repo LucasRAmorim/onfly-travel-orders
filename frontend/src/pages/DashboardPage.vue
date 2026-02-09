@@ -125,6 +125,11 @@ function buildParams(): Record<string, string | number> {
   if (filters.value.travel_to) p.travel_to = toApiDate(filters.value.travel_to)
 
   p.page = pagination.value.page
+  p.per_page = pagination.value.rowsPerPage
+  if (pagination.value.sortBy) {
+    p.sort_by = pagination.value.sortBy
+    p.sort_dir = pagination.value.descending ? 'desc' : 'asc'
+  }
 
   return p
 }
@@ -133,11 +138,14 @@ async function fetchOrders(): Promise<void> {
   loading.value = true
   try {
     const data = await listTravelOrders(buildParams())
-    const paginator = data.data
-    rows.value = paginator.data
-    pagination.value.rowsNumber = paginator.total
-    pagination.value.page = paginator.current_page
-    pagination.value.rowsPerPage = paginator.per_page
+    const paginator = data as unknown
+    const list = extractOrders(paginator)
+    const meta = extractPaginatorMeta(paginator)
+
+    rows.value = list
+    pagination.value.rowsNumber = meta?.total ?? list.length
+    pagination.value.page = meta?.current_page ?? pagination.value.page
+    pagination.value.rowsPerPage = meta?.per_page ?? pagination.value.rowsPerPage
 
     statusSummary.value = {
       requested: data.meta?.status_counts?.requested ?? 0,
@@ -220,4 +228,34 @@ function updateStatus(payload: { id: number; status: StatusValue }) {
 onMounted(async () => {
   await fetchOrders()
 })
+
+function extractOrders(payload: unknown): TravelOrder[] {
+  if (Array.isArray(payload)) return payload as TravelOrder[]
+
+  if (payload && typeof payload === 'object') {
+    const obj = payload as { data?: unknown }
+    if (Array.isArray(obj.data)) return obj.data as TravelOrder[]
+
+    const nested = obj.data as { data?: unknown } | undefined
+    if (nested && Array.isArray(nested.data)) return nested.data as TravelOrder[]
+  }
+
+  return []
+}
+
+function extractPaginatorMeta(payload: unknown): { total?: number; current_page?: number; per_page?: number } | null {
+  if (isPaginatorMeta(payload)) return payload
+  if (payload && typeof payload === 'object') {
+    const obj = payload as { data?: unknown }
+    if (isPaginatorMeta(obj.data)) return obj.data
+  }
+  return null
+}
+
+function isPaginatorMeta(
+  payload: unknown
+): payload is { total?: number; current_page?: number; per_page?: number } {
+  if (!payload || typeof payload !== 'object') return false
+  return 'total' in payload || 'current_page' in payload || 'per_page' in payload
+}
 </script>

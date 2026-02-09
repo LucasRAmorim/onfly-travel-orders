@@ -18,8 +18,9 @@
             :unread-count="unreadCount"
             @open="fetchNotifications"
             @read="markNotificationAsRead"
+            @view-all="goToNotifications"
           />
-          <div class="column items-center">
+          <div class="column items-center user-summary">
             <div class="text-caption text-grey-7 text-center">{{ displayName }}</div>
             <div class="text-caption text-grey-7 text-center">{{ roleLabel }}</div>
           </div>
@@ -65,7 +66,7 @@ async function logout() {
 async function fetchNotifications(): Promise<void> {
   if (isAdmin.value) return
   try {
-    const data = await fetchNotificationsService()
+    const data = await fetchNotificationsService({ onlyUnread: true, limit: 10 })
     notifications.value = data.data || []
     unreadCount.value = data.meta?.unread_count ?? 0
   } catch {
@@ -77,13 +78,15 @@ async function fetchNotifications(): Promise<void> {
 async function markNotificationAsRead(id: string): Promise<void> {
   try {
     await markNotificationAsReadService(id)
-    notifications.value = notifications.value.map((note) =>
-      note.id === id ? { ...note, read_at: new Date().toISOString() } : note
-    )
+    notifications.value = notifications.value.filter((note) => note.id !== id)
     unreadCount.value = Math.max(0, unreadCount.value - 1)
   } catch {
     // no-op
   }
+}
+
+async function goToNotifications(): Promise<void> {
+  await router.push('/notifications')
 }
 
 onMounted(async () => {

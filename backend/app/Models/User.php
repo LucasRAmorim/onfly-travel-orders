@@ -2,11 +2,12 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Notifications\DatabaseNotification;
+use Illuminate\Database\Eloquent\Collection;
 
 class User extends Authenticatable
 {
@@ -14,7 +15,7 @@ class User extends Authenticatable
     use HasFactory, Notifiable, HasApiTokens;
 
     /**
-     * The attributes that are mass assignable.
+     * Atributos que podem ser atribuídos em massa.
      *
      * @var list<string>
      */
@@ -25,7 +26,7 @@ class User extends Authenticatable
     ];
 
     /**
-     * The attributes that should be hidden for serialization.
+     * Atributos que devem ser ocultados na serialização.
      *
      * @var list<string>
      */
@@ -35,7 +36,7 @@ class User extends Authenticatable
     ];
 
     /**
-     * Get the attributes that should be cast.
+     * Retorna os casts de atributos.
      *
      * @return array<string, string>
      */
@@ -47,15 +48,74 @@ class User extends Authenticatable
         ];
     }
 
+    /**
+     * Indica se o usuario possui papel de admin.
+     *
+     * @return bool
+     */
     public function isAdmin(): bool
     {
         return $this->role === 'admin';
     }
 
+    /**
+     * Relacionamento com pedidos de viagem.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
     public function travelOrders()
     {
         return $this->hasMany(\App\Models\TravelOrder::class);
     }
 
+    /**
+     * Localiza um usuario pelo email.
+     *
+     * @param  string  $email
+     * @return self|null
+     */
+    public static function findByEmail(string $email): ?self
+    {
+        return static::where('email', $email)->first();
+    }
 
+    /**
+     * Retorna as ultimas notificacoes do usuario.
+     *
+     * @param  int  $limit
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    public function latestNotifications(int $limit = 10): Collection
+    {
+        return $this->notifications()
+            ->latest()
+            ->take($limit)
+            ->get();
+    }
+
+    /**
+     * Retorna a quantidade de notificacoes nao lidas.
+     *
+     * @return int
+     */
+    public function unreadNotificationsCount(): int
+    {
+        return $this->unreadNotifications()->count();
+    }
+
+    /**
+     * Marca uma notificacao como lida e retorna o modelo atualizado.
+     *
+     * @param  string  $notificationId
+     * @return \Illuminate\Notifications\DatabaseNotification
+     *
+     * @throws \Illuminate\Database\Eloquent\ModelNotFoundException
+     */
+    public function markNotificationAsReadById(string $notificationId): DatabaseNotification
+    {
+        $notification = $this->notifications()->findOrFail($notificationId);
+        $notification->markAsRead();
+
+        return $notification;
+    }
 }

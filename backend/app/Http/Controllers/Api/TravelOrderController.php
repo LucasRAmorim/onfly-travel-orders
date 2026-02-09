@@ -3,12 +3,13 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\TravelOrderListResource;
+use App\Http\Resources\TravelOrderResource;
 use App\Http\Requests\IndexTravelOrderRequest;
 use App\Http\Requests\StoreTravelOrderRequest;
-use App\Actions\UpdateTravelOrderStatusAction;
 use App\Http\Requests\UpdateTravelOrderStatusRequest;
-use App\Notifications\TravelOrderStatusChanged;
 use App\Models\TravelOrder;
+use App\Repositories\TravelOrderRepository;
 use Illuminate\Http\Request;
 use OpenApi\Annotations as OA;
 
@@ -65,6 +66,24 @@ class TravelOrderController extends Controller
      *         description="Pagina",
      *         @OA\Schema(type="integer", default=1)
      *     ),
+     *     @OA\Parameter(
+     *         name="per_page",
+     *         in="query",
+     *         description="Itens por pagina (0 para todos)",
+     *         @OA\Schema(type="integer", default=10)
+     *     ),
+     *     @OA\Parameter(
+     *         name="sort_by",
+     *         in="query",
+     *         description="Campo de ordenacao",
+     *         @OA\Schema(type="string", enum={"id","requester_name","destination","departure_date","return_date","status","created_at"})
+     *     ),
+     *     @OA\Parameter(
+     *         name="sort_dir",
+     *         in="query",
+     *         description="Direcao da ordenacao",
+     *         @OA\Schema(type="string", enum={"asc","desc"})
+     *     ),
      *     @OA\Response(
      *         response=200,
      *         description="Lista de pedidos",
@@ -82,52 +101,16 @@ class TravelOrderController extends Controller
      *     )
      * )
      */
-    public function index(IndexTravelOrderRequest $request)
+    public function index(IndexTravelOrderRequest $request, TravelOrderRepository $repository)
     {
         $user = $request->user();
         $filters = $request->validated();
+        $perPage = (int) ($filters['per_page'] ?? 10);
+        $result = $repository->listFor($user, $filters, $perPage);
+        $paginator = $result['paginator'];
+        $counts = $result['counts'];
 
-        $query = TravelOrder::query();
-
-        if (! $user->isAdmin()) {
-            $query->where('user_id', $user->id);
-        }
-
-        $query->when($filters['status'] ?? null, fn ($q, $status) => $q->where('status', $status));
-        $query->when($filters['destination'] ?? null, fn ($q, $dest) => $q->where('destination', 'like', "%{$dest}%"));
-
-        $travelFrom = $filters['travel_from'] ?? null;
-        $travelTo = $filters['travel_to'] ?? null;
-        if ($travelFrom || $travelTo) {
-            $travelFrom = $travelFrom ?: '1900-01-01';
-            $travelTo = $travelTo ?: '2999-12-31';
-
-            $query->where(function ($q) use ($travelFrom, $travelTo) {
-                $q->whereBetween('departure_date', [$travelFrom, $travelTo])
-                  ->orWhereBetween('return_date', [$travelFrom, $travelTo])
-                  ->orWhere(function ($q2) use ($travelFrom, $travelTo) {
-                      $q2->where('departure_date', '<=', $travelFrom)
-                         ->where('return_date', '>=', $travelTo);
-                  });
-            });
-        }
-
-        $createdFrom = $filters['created_from'] ?? null;
-        $createdTo = $filters['created_to'] ?? null;
-        if ($createdFrom) $query->whereDate('created_at', '>=', $createdFrom);
-        if ($createdTo) $query->whereDate('created_at', '<=', $createdTo);
-
-        $baseQuery = clone $query;
-
-        $counts = $baseQuery
-            ->selectRaw('status, COUNT(*) as total')
-            ->groupBy('status')
-            ->pluck('total', 'status');
-
-        $paginator = $query->orderByDesc('id')->paginate(10);
-
-        return response()->json([
-            'data' => $paginator,
+        return (new TravelOrderListResource($paginator))->additional([
             'meta' => [
                 'status_counts' => [
                     'requested' => (int) ($counts['requested'] ?? 0),
@@ -166,23 +149,14 @@ class TravelOrderController extends Controller
      *     )
      * )
      */
-    public function store(StoreTravelOrderRequest $request)
+    public function store(StoreTravelOrderRequest $request, TravelOrderRepository $repository)
     {
         $user = $request->user();
+        $order = $repository->createForUser($user, $request->validated());
 
-        // dd($request->all());
-        $order = TravelOrder::create([
-            'user_id' => $user->id,
-            'requester_name' => $request->validated()['requester_name'],
-            'destination' => $request->validated()['destination'],
-            'departure_date' => $request->validated()['departure_date'],
-            'return_date' => $request->validated()['return_date'],
-            'status' => 'requested',
-        ]);
-
-        return response()->json([
-            'data' => $order,
-        ], 201);
+        return (new TravelOrderResource($order))
+            ->response()
+            ->setStatusCode(201);
     }
 
     /**
@@ -225,9 +199,7 @@ class TravelOrderController extends Controller
     {
         $this->authorize('view', $travelOrder);
 
-        return response()->json([
-            'data' => $travelOrder,
-        ]);
+        return new TravelOrderResource($travelOrder);
     }
 
     /**
@@ -281,19 +253,12 @@ class TravelOrderController extends Controller
     public function updateStatus(
         UpdateTravelOrderStatusRequest $request,
         TravelOrder $travelOrder,
-        UpdateTravelOrderStatusAction $action
+        TravelOrderRepository $repository
     ) {
         $this->authorize('updateStatus', $travelOrder);
 
-        $order = $action->execute(
-            $travelOrder,
-            $request->validated()['status']
-        );
+        $order = $repository->updateStatus($travelOrder, $request->validated()['status']);
 
-        $order->user->notify(new TravelOrderStatusChanged($order));
-
-        return response()->json([
-            'data' => $order,
-        ]);
+        return new TravelOrderResource($order);
     }
 }

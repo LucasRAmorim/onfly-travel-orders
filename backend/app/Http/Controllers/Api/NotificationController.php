@@ -3,6 +3,10 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\MessageResource;
+use App\Http\Resources\NotificationReadResource;
+use App\Http\Resources\NotificationResource;
+use App\Repositories\NotificationRepository;
 use Illuminate\Http\Request;
 use OpenApi\Annotations as OA;
 
@@ -15,6 +19,18 @@ class NotificationController extends Controller
      *     description="Retorna as ultimas notificacoes do usuario.",
      *     tags={"Notificacoes"},
      *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="only_unread",
+     *         in="query",
+     *         description="Quando true, retorna apenas notificacoes nao lidas",
+     *         @OA\Schema(type="boolean", example=true)
+     *     ),
+     *     @OA\Parameter(
+     *         name="limit",
+     *         in="query",
+     *         description="Limite de resultados (0 para retornar todas)",
+     *         @OA\Schema(type="integer", example=10)
+     *     ),
      *     @OA\Response(
      *         response=200,
      *         description="Lista de notificacoes",
@@ -27,38 +43,20 @@ class NotificationController extends Controller
      *     )
      * )
      */
-    public function index(Request $request)
+    public function index(Request $request, NotificationRepository $repository)
     {
         $user = $request->user();
+        $onlyUnread = filter_var($request->query('only_unread', false), FILTER_VALIDATE_BOOLEAN);
+        $limit = (int) $request->query('limit', 10);
+        $limit = max(0, $limit);
+        $result = $repository->listFor($user, $limit, $onlyUnread);
 
-        if ($user->isAdmin()) {
-            return response()->json([
-                'data' => [],
+        return NotificationResource::collection($result['notifications'])
+            ->additional([
                 'meta' => [
-                    'unread_count' => 0,
+                    'unread_count' => $result['unreadCount'],
                 ],
             ]);
-        }
-
-        $notifications = $user->notifications()
-            ->latest()
-            ->take(10)
-            ->get()
-            ->map(function ($notification) {
-                return [
-                    'id' => $notification->id,
-                    'read_at' => $notification->read_at?->toISOString(),
-                    'created_at' => $notification->created_at?->toISOString(),
-                    'data' => $notification->data,
-                ];
-            });
-
-        return response()->json([
-            'data' => $notifications,
-            'meta' => [
-                'unread_count' => $user->unreadNotifications()->count(),
-            ],
-        ]);
     }
 
     /**
@@ -96,24 +94,18 @@ class NotificationController extends Controller
      *     )
      * )
      */
-    public function markAsRead(Request $request, string $notificationId)
+    public function markAsRead(Request $request, string $notificationId, NotificationRepository $repository)
     {
         $user = $request->user();
 
         if ($user->isAdmin()) {
-            return response()->json([
-                'message' => 'Admins nao possuem notificacoes.',
-            ], 403);
+            return (new MessageResource('Admins nao possuem notificacoes.'))
+                ->response()
+                ->setStatusCode(403);
         }
 
-        $notification = $user->notifications()->findOrFail($notificationId);
-        $notification->markAsRead();
+        $notification = $repository->markAsRead($user, $notificationId);
 
-        return response()->json([
-            'data' => [
-                'id' => $notification->id,
-                'read_at' => $notification->read_at?->toISOString(),
-            ],
-        ]);
+        return new NotificationReadResource($notification);
     }
 }
