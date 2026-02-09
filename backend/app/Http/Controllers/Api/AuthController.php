@@ -3,10 +3,11 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
+use App\Http\Resources\AuthResource;
+use App\Http\Resources\MessageResource;
+use App\Http\Resources\UserProfileResource;
+use App\Repositories\AuthRepository;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\ValidationException;
 use OpenApi\Annotations as OA;
 
 class AuthController extends Controller
@@ -37,47 +38,32 @@ class AuthController extends Controller
      *     )
      * )
      */
-    public function login(Request $request)
+    public function login(Request $request, AuthRepository $auth)
     {
         $credentials = $request->validate([
             'email' => ['required', 'email'],
             'password' => ['required', 'string'],
         ]);
 
-        $user = User::where('email', $credentials['email'])->first();
+        $result = $auth->attemptLogin($credentials['email'], $credentials['password']);
+        $user = $result['user'];
+        $token = $result['token'];
 
-        if (! $user || ! Hash::check($credentials['password'], $user->password)) {
-            throw ValidationException::withMessages([
-                'email' => ['Credenciais inválidas.'],
-            ]);
-        }
-
-        $token = $user->createToken('api')->plainTextToken;
-
-        return response()->json([
+        return new AuthResource([
             'token' => $token,
-            'user' => [
-                'id' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
-                'role' => $user->role ?? 'user',
-            ],
+            'user' => $user,
         ]);
     }
 
     public function me(Request $request)
     {
-        return response()->json([
-            'user' => $request->user(),
-        ]);
+        return new UserProfileResource($request->user());
     }
 
     public function logout(Request $request)
     {
         $request->user()->currentAccessToken()?->delete();
 
-        return response()->json([
-            'message' => 'Logout realizado com sucesso.',
-        ]);
+        return new MessageResource('Logout realizado com sucesso.');
     }
 }

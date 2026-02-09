@@ -84,6 +84,12 @@ Configure o `.env` do frontend:
 cp ../frontend/.env.example ../frontend/.env
 ```
 
+Instale as dependencias PHP (necessario para gerar `vendor/` para poder utilizar o Sail):
+
+```bash
+composer install
+```
+
 Suba os containers:
 
 ```bash
