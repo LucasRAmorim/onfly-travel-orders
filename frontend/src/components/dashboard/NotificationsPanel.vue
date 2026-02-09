@@ -2,7 +2,7 @@
   <q-card v-if="notifications.length" class="glass-card q-mb-md reveal-2">
     <q-card-section>
       <div class="row items-center justify-between q-mb-sm">
-        <div class="section-title">Notificacoes</div>
+        <div class="section-title">Notificações</div>
         <q-badge v-if="unreadCount" color="negative" rounded>{{ unreadCount }} novas</q-badge>
       </div>
 
@@ -43,20 +43,11 @@
 <script setup lang="ts">
 import { date } from 'quasar'
 import { useStatusHelpers } from 'src/composables/useStatusHelpers'
+import type { NotificationItem } from 'src/types/notifications'
+import type { StatusValue } from 'src/types/travel-orders'
 
 defineProps<{
-  notifications: Array<{
-    id: string
-    created_at: string | null
-    read_at: string | null
-    data: {
-      travel_order_id: number
-      status: 'requested' | 'approved' | 'canceled'
-      destination: string
-      departure_date: string
-      return_date: string
-    }
-  }>
+  notifications: NotificationItem[]
   unreadCount: number
 }>()
 
@@ -66,7 +57,7 @@ defineEmits<{
 
 const { statusLabel, statusClass } = useStatusHelpers()
 
-function statusLabelLower(status: 'requested' | 'approved' | 'canceled') {
+function statusLabelLower(status: StatusValue) {
   const label = statusLabel(status)
   return label.charAt(0).toLowerCase() + label.slice(1)
 }

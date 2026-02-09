@@ -30,6 +30,11 @@ class IndexTravelOrderRequest extends FormRequest
 
             'created_from' => ['nullable', 'date'],
             'created_to' => ['nullable', 'date'],
+
+            'page' => ['nullable', 'integer', 'min:1'],
+            'per_page' => ['nullable', 'integer', 'min:0', 'max:100'],
+            'sort_by' => ['nullable', 'in:id,requester_name,destination,departure_date,return_date,status,created_at'],
+            'sort_dir' => ['nullable', 'in:asc,desc'],
         ];
     }
 }

@@ -133,6 +133,38 @@ class TravelOrder extends Model
     }
 
     /**
+     * Aplica ordenacao segura com base nos campos permitidos.
+     *
+     * @param  Builder  $query
+     * @param  string|null  $sortBy
+     * @param  string|null  $sortDir
+     * @return Builder
+     */
+    public function scopeApplySort(Builder $query, ?string $sortBy, ?string $sortDir): Builder
+    {
+        $allowed = [
+            'id' => 'id',
+            'requester_name' => 'requester_name',
+            'destination' => 'destination',
+            'departure_date' => 'departure_date',
+            'return_date' => 'return_date',
+            'status' => 'status',
+            'created_at' => 'created_at',
+        ];
+
+        $column = $allowed[$sortBy ?? ''] ?? 'id';
+        $direction = $sortDir === 'asc' ? 'asc' : 'desc';
+
+        $query->orderBy($column, $direction);
+
+        if ($column !== 'id') {
+            $query->orderBy('id', 'desc');
+        }
+
+        return $query;
+    }
+
+    /**
      * Monta a query filtrada para o usuario.
      *
      * @param  User  $user
@@ -160,7 +192,7 @@ class TravelOrder extends Model
     public static function paginateFor(User $user, array $filters, int $perPage = 10): LengthAwarePaginator
     {
         return static::filteredQueryFor($user, $filters)
-            ->orderByDesc('id')
+            ->applySort($filters['sort_by'] ?? null, $filters['sort_dir'] ?? null)
             ->paginate($perPage);
     }
 
@@ -178,6 +210,18 @@ class TravelOrder extends Model
             ->groupBy('status')
             ->pluck('total', 'status')
             ->all();
+    }
+
+    /**
+     * Retorna a quantidade total de pedidos para o usuario.
+     *
+     * @param  User  $user
+     * @param  array<string, mixed>  $filters
+     * @return int
+     */
+    public static function countFor(User $user, array $filters): int
+    {
+        return static::filteredQueryFor($user, $filters)->count();
     }
 
     /**

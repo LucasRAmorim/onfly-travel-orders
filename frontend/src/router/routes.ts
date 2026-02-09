@@ -10,7 +10,10 @@ const routes: RouteRecordRaw[] = [
     path: '/',
     component: () => import('layouts/MainLayout.vue'),
     meta: { requiresAuth: true },
-    children: [{ path: '', component: () => import('pages/DashboardPage.vue') }],
+    children: [
+      { path: '', component: () => import('pages/DashboardPage.vue') },
+      { path: 'notifications', component: () => import('pages/NotificationsPage.vue') },
+    ],
   },
   {
     path: '/:catchAll(.*)*',

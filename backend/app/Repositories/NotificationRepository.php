@@ -13,7 +13,7 @@ class NotificationRepository
      *
      * @return array{notifications: Collection, unreadCount: int}
      */
-    public function listFor(User $user, int $limit = 10): array
+    public function listFor(User $user, int $limit = 10, bool $onlyUnread = false): array
     {
         if ($user->isAdmin()) {
             return [
@@ -22,8 +22,15 @@ class NotificationRepository
             ];
         }
 
+        $query = $onlyUnread ? $user->unreadNotifications() : $user->notifications();
+        $query->latest();
+
+        if ($limit > 0) {
+            $query->take($limit);
+        }
+
         return [
-            'notifications' => $user->latestNotifications($limit),
+            'notifications' => $query->get(),
             'unreadCount' => $user->unreadNotificationsCount(),
         ];
     }

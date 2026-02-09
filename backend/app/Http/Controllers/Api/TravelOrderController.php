@@ -66,6 +66,24 @@ class TravelOrderController extends Controller
      *         description="Pagina",
      *         @OA\Schema(type="integer", default=1)
      *     ),
+     *     @OA\Parameter(
+     *         name="per_page",
+     *         in="query",
+     *         description="Itens por pagina (0 para todos)",
+     *         @OA\Schema(type="integer", default=10)
+     *     ),
+     *     @OA\Parameter(
+     *         name="sort_by",
+     *         in="query",
+     *         description="Campo de ordenacao",
+     *         @OA\Schema(type="string", enum={"id","requester_name","destination","departure_date","return_date","status","created_at"})
+     *     ),
+     *     @OA\Parameter(
+     *         name="sort_dir",
+     *         in="query",
+     *         description="Direcao da ordenacao",
+     *         @OA\Schema(type="string", enum={"asc","desc"})
+     *     ),
      *     @OA\Response(
      *         response=200,
      *         description="Lista de pedidos",
@@ -87,7 +105,8 @@ class TravelOrderController extends Controller
     {
         $user = $request->user();
         $filters = $request->validated();
-        $result = $repository->listFor($user, $filters);
+        $perPage = (int) ($filters['per_page'] ?? 10);
+        $result = $repository->listFor($user, $filters, $perPage);
         $paginator = $result['paginator'];
         $counts = $result['counts'];
 

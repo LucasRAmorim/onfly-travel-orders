@@ -19,6 +19,18 @@ class NotificationController extends Controller
      *     description="Retorna as ultimas notificacoes do usuario.",
      *     tags={"Notificacoes"},
      *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="only_unread",
+     *         in="query",
+     *         description="Quando true, retorna apenas notificacoes nao lidas",
+     *         @OA\Schema(type="boolean", example=true)
+     *     ),
+     *     @OA\Parameter(
+     *         name="limit",
+     *         in="query",
+     *         description="Limite de resultados (0 para retornar todas)",
+     *         @OA\Schema(type="integer", example=10)
+     *     ),
      *     @OA\Response(
      *         response=200,
      *         description="Lista de notificacoes",
@@ -34,7 +46,10 @@ class NotificationController extends Controller
     public function index(Request $request, NotificationRepository $repository)
     {
         $user = $request->user();
-        $result = $repository->listFor($user);
+        $onlyUnread = filter_var($request->query('only_unread', false), FILTER_VALIDATE_BOOLEAN);
+        $limit = (int) $request->query('limit', 10);
+        $limit = max(0, $limit);
+        $result = $repository->listFor($user, $limit, $onlyUnread);
 
         return NotificationResource::collection($result['notifications'])
             ->additional([

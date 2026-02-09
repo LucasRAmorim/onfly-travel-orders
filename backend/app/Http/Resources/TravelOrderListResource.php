@@ -10,7 +10,7 @@ class TravelOrderListResource extends JsonResource
     {
         $paginator = $this->resource;
         $payload = $paginator->toArray();
-        $payload['data'] = TravelOrderResource::collection($paginator->getCollection());
+        $payload['data'] = TravelOrderResource::collection($paginator->getCollection())->resolve($request);
 
         return $payload;
     }

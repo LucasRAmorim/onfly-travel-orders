@@ -21,6 +21,10 @@ class TravelOrderRepository
      */
     public function listFor(User $user, array $filters, int $perPage = 10): array
     {
+        if ($perPage === 0) {
+            $perPage = max(1, TravelOrder::countFor($user, $filters));
+        }
+
         $paginator = TravelOrder::paginateFor($user, $filters, $perPage);
         $counts = TravelOrder::statusCountsFor($user, $filters);
 

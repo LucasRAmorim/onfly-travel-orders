@@ -5,7 +5,7 @@
       <q-menu anchor="bottom right" self="top right" :offset="[0, 10]" @show="emit('open')">
       <q-card class="notification-menu-card">
         <q-card-section class="row items-center justify-between">
-          <div class="section-title">Notificacoes</div>
+          <div class="section-title">Notificações</div>
           <q-badge v-if="unreadCount" color="negative" rounded>{{ unreadCount }} novas</q-badge>
         </q-card-section>
         <q-separator />
@@ -47,6 +47,16 @@
         <q-card-section v-else class="text-caption text-grey-6">
           Nenhuma notificacao por enquanto.
         </q-card-section>
+        <q-separator />
+        <q-card-actions align="right">
+          <q-btn
+            flat
+            color="primary"
+            label="Ver todas"
+            v-close-popup
+            @click="emit('view-all')"
+          />
+        </q-card-actions>
       </q-card>
       </q-menu>
     </q-btn>
@@ -56,28 +66,19 @@
 <script setup lang="ts">
 import { date } from 'quasar'
 import { useStatusHelpers } from 'src/composables/useStatusHelpers'
+import type { NotificationItem } from 'src/types/notifications'
 import type { StatusValue } from 'src/types/travel-orders'
 
 defineProps<{
   isAdmin: boolean
-  notifications: Array<{
-    id: string
-    created_at: string | null
-    read_at: string | null
-    data: {
-      travel_order_id: number
-      status: StatusValue
-      destination: string
-      departure_date: string
-      return_date: string
-    }
-  }>
+  notifications: NotificationItem[]
   unreadCount: number
 }>()
 
 const emit = defineEmits<{
   (e: 'read', id: string): void
   (e: 'open'): void
+  (e: 'view-all'): void
 }>()
 
 const { statusLabel, statusClass } = useStatusHelpers()
